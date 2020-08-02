@@ -114,3 +114,30 @@
      Properties:
        SubnetId: !Ref FrontendSubnet2
        RouteTableId: !Ref FrontendRouteTable2
+
+    SecurityGroupForEC2:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: SG for EC2instance1
+        GroupName: aws-ec2-sg-forCFN
+        SecurityGroupEgress:
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: 0.0.0.0/0
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 22
+            ToPort: 22
+            CidrIp: 175.177.6.38/32
+        VpcId: !Ref FirstVPC
+
+    EC2instance1:
+     Type: AWS::EC2::Instance
+     Properties:
+       InstanceType: "t2.micro"
+       ImageId: "ami-043331dbab429cf61"
+       SubnetId: !Ref FrontendSubnet1
+       SecurityGroupIds:
+         - !Ref SecurityGroupForEC2
+       KeyName: "kohei"
