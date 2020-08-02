@@ -1,0 +1,116 @@
+  AWSTemplateFormatVersion: '2010-09-09'
+  Resources:
+    FirstVPC:
+      Type: AWS::EC2::VPC
+      Properties:
+        CidrBlock: 10.1.0.0/16
+        Tags:
+          - Key: Name
+            Value: First-CF-VPC
+
+    InternetGateway:
+      Type: AWS::EC2::InternetGateway
+      Properties:
+        Tags:
+          - Key: Name
+            Value: FirstVPC-CF-IGW
+
+    AttachGateway:
+      Type: AWS::EC2::VPCGatewayAttachment
+      Properties:
+        VpcId: !Ref FirstVPC
+        InternetGatewayId: !Ref InternetGateway
+
+    FrontendRouteTable1:
+      Type: AWS::EC2::RouteTable
+      #DependsOn: AttachGateway
+      Properties:
+        VpcId: !Ref FirstVPC
+        Tags:
+        - Key: Name
+          Value: FirstVPC-FrontendRoute1
+
+    FrontendRouteTable2:
+      Type: AWS::EC2::RouteTable
+      DependsOn: AttachGateway
+      Properties:
+        VpcId: !Ref FirstVPC
+        Tags:
+        - Key: Name
+          Value: FirstVPC-FrontendRoute2
+
+    FrontendRoute1:
+      Type: AWS::EC2::Route
+      DependsOn: AttachGateway
+      Properties:
+        RouteTableId: !Ref FrontendRouteTable1
+        DestinationCidrBlock: 0.0.0.0/0
+        GatewayId: !Ref InternetGateway
+
+    FrontendRoute2:
+      Type: AWS::EC2::Route
+      DependsOn: AttachGateway
+      Properties:
+        RouteTableId: !Ref FrontendRouteTable2
+        DestinationCidrBlock: 0.0.0.0/0
+        GatewayId: !Ref InternetGateway
+
+    FrontendSubnet1:
+      Type: AWS::EC2::Subnet
+      DependsOn: AttachGateway
+      Properties:
+        CidrBlock: 10.1.0.0/24
+        MapPublicIpOnLaunch: 'true'
+        VpcId: !Ref FirstVPC
+        AvailabilityZone: 'ap-northeast-1a'
+        Tags:
+          - Key: Name
+            Value: FirstVPC-FrontendSubnet1
+
+    FrontendSubnet2:
+      Type: AWS::EC2::Subnet
+      DependsOn: AttachGateway
+      Properties:
+        CidrBlock: 10.1.1.0/24
+        MapPublicIpOnLaunch: 'true'
+        AvailabilityZone: 'ap-northeast-1c'
+        VpcId: !Ref FirstVPC
+        Tags:
+          - Key: Name
+            Value: FirstVPC-FrontendSubnet2
+
+    BackendSubnet1:
+      Type: AWS::EC2::Subnet
+      DependsOn: AttachGateway
+      Properties:
+        CidrBlock: 10.1.3.0/24
+        MapPublicIpOnLaunch: 'true'
+        VpcId: !Ref FirstVPC
+        AvailabilityZone: 'ap-northeast-1a'
+        Tags:
+          - Key: Name
+            Value: FirstVPC-BackendSubnet1
+
+    BackendSubnet2:
+      Type: AWS::EC2::Subnet
+      DependsOn: AttachGateway
+      Properties:
+        CidrBlock: 10.1.4.0/24
+        MapPublicIpOnLaunch: 'true'
+        VpcId: !Ref FirstVPC
+        AvailabilityZone: 'ap-northeast-1c'
+        Tags:
+          - Key: Name
+            Value: FirstVPC-BackendSubnet2
+
+    FrontendSubnetRouteTableAssociation1:
+     Type: AWS::EC2::SubnetRouteTableAssociation
+     Properties:
+       SubnetId: !Ref FrontendSubnet1
+       RouteTableId: !Ref FrontendRouteTable1
+
+    FrontendSubnetRouteTableAssociation2:
+     Type: AWS::EC2::SubnetRouteTableAssociation
+     Properties:
+       SubnetId: !Ref FrontendSubnet2
+       RouteTableId: !Ref FrontendRouteTable2
